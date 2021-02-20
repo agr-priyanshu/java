@@ -29,17 +29,68 @@ public class ClientCertificateAuthentication implements Authentication {
   private static final Logger log = LoggerFactory.getLogger(ClientCertificateAuthentication.class);
   private final byte[] certificate;
   private final byte[] key;
-
-  public ClientCertificateAuthentication(final byte[] certificate, final byte[] key) {
-    this.certificate = certificate;
-    this.key = key;
+  private final String keyPassPhrase;
+  private final String keyStoreFile;
+  private final String keyStorePassphrase;
+  
+  public byte[] getCertificate(){
+    return certificate;
+  }
+  
+  public byte[] getKey(){
+    return key;
+  }
+  
+  public String getKeyPassPhrase(){
+    return keyPassPhrase;
+  }
+  
+  public String getKeyStoreFile(){
+    return keyStoreFile;
+  }
+  
+  public String getKeyStorePassphrase(){
+    return keyStorePassphrase;
+  }
+  
+  public static class ClientCertificateAuthenticationBuilder {
+    private final byte[] certificate;
+    private final byte[] key;
+    private final String keyPassPhrase;
+    private final String keyStoreFile;
+    private final String keyStorePassphrase;
+  
+    public ClientCertificateAuthenticationBuilder(final byte[] certificate, final byte[] key) {
+      this.certificate = certificate;
+      this.key = key;
+    }
+    
+    public ClientCertificateAuthenticationBuilder setKeyPassPhrase(String keyPassPhrase) {
+      this.keyPassPhrase = keyPassPhrase;
+      return this;
+    }
+    
+    public ClientCertificateAuthenticationBuilder setKeyStoreFile(String keyStoreFile) {
+      this.keyStoreFile = keyStoreFile;
+      return this;
+    }
+    
+    public ClientCertificateAuthenticationBuilder setKeyStorePassphrase(String keyStorePassphrase) {
+      this.keyStorePassphrase = keyStorePassphrase;
+      return this;
+    }
+    
+    public ClientCertificateAuthentication build() {
+      return new ClientCertificateAuthentication(this);
+    }
+  
   }
 
   @Override
   public void provide(ApiClient client) {
     String algo = SSLUtils.recognizePrivateKeyAlgo(key);
     try {
-      final KeyManager[] keyManagers = SSLUtils.keyManagers(certificate, key, algo, "", null, null);
+      final KeyManager[] keyManagers = SSLUtils.keyManagers(certificate, key, algo, keyPassPhrase, keyStoreFile, keyStorePassphrase);
       client.setKeyManagers(keyManagers);
     } catch (NoSuchAlgorithmException
         | UnrecoverableKeyException
